@@ -1,47 +1,33 @@
 <script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
+  import GameHeader from './components/GameHeader.vue';
+  import GameFigure from './components/GameFigure.vue';
+  import GameNotification from './components/GameNotification.vue';
+  import GamePopup from './components/GamePopup.vue';
+  import GameWord from './components/GameWord.vue';
+  import GameWrongLetters from './components/GameWrongLetters.vue';
+  import { computed, ref } from 'vue';
+
+  const word = ref('Аружан')
+  const letters = ref<string[]>([])
+  const correctLetters = computed(()=> letters.value.filter(x=> word.value.includes(x)))
+
+  window.addEventListener('keydown', ({key})=> {
+    if(/[а-яА-ЯёЁ]/.test(key)) {
+      letters.value.push(key.toLowerCase())
+    }
+  })
 </script>
-
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
+  <GameHeader/>
+  <div class="game-container">
+    <GameFigure/>
 
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
+    <div class="wrong-letters-container">
+      <GameWrongLetters/>
     </div>
-  </header>
+    <GameWord :word="word" :correct-letters="correctLetters"/>
+  </div>
 
-  <main>
-    <TheWelcome />
-  </main>
+  <GamePopup v-if="false"/>
+  <GameNotification/>
 </template>
-
-<style scoped>
-header {
-  line-height: 1.5;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-}
-</style>
