@@ -1,35 +1,25 @@
 <script setup lang="ts">
   import GameHeader from './components/GameHeader.vue';
   import GameFigure from './components/GameFigure.vue';
-  import GameNotification from './components/GameNotification.vue';
   import GamePopup from './components/GamePopup.vue';
   import GameWord from './components/GameWord.vue';
   import GameWrongLetters from './components/GameWrongLetters.vue';
   import { computed, ref, watch } from 'vue';
-  import axios from 'axios'
-
-  const word = ref('')
-  const letters = ref<string[]>([])
-  const correctLetters = computed(()=> letters.value.filter(x=> word.value.includes(x)))
-  const wrongLetters = computed(()=> letters.value.filter(x=> !word.value.includes(x)))
-  const isLose = computed(()=>wrongLetters.value.length === 6)
-  const isWin = computed(()=>[...word.value].every(x=> correctLetters.value.includes(x)))
-  const notification = ref<InstanceType<typeof GameNotification> | null>(null)
+  import { useRandomWord } from './composables/useRandomWord';
+  import { useLetters } from './composables/useLetters';
+  import {useNotification} from './composables/useNotification'
+  
+  
   const popup = ref<InstanceType<typeof GamePopup> | null>(null)
-  const getRundomWord = async ()=>{
-    try {
-      const {data} = await axios<{FirstName: string}>(
-        'https://api.randomdatatools.ru/?unescaped=false&params=FirstName'
-      )
-      console.log(data.FirstName)
-      word.value = data.FirstName.toLowerCase()
-      console.log(data.FirstName)
-    } catch(err) {
-      console.log(err)
-      word.value = ''
-    }
+  
+  const {word, getRandomWord} = useRandomWord()
+  const {letters, correctLetters, wrongLetters, isLose, isWin, addLetter, resetLetter} = useLetters(word)
+  const {notification, showNotification} = useNotification()
+  const restart = async()=> {
+    await getRandomWord()
+    resetLetter()
+    popup.value?.close()
   }
-  getRundomWord()
 
   watch(wrongLetters, ()=> {
     if(isLose.value) {
@@ -48,21 +38,11 @@
       return
     }
     if(letters.value.includes(key)) {
-      notification.value?.open()
-      setTimeout(()=> notification.value?.close(), 2000)
-      return
+      showNotification()
     }
 
-    if(/[а-яА-ЯёЁ]/.test(key)) {
-      letters.value.push(key.toLowerCase())
-    }
+    addLetter(key)
   })
-
-  const restart = async()=> {
-    await getRundomWord()
-    letters.value = []
-    popup.value?.close()
-  }
 </script>
 <template>
   <GameHeader/>
